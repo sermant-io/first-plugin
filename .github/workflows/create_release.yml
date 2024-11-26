@@ -1,0 +1,57 @@
+on:
+  push:
+    tags:
+      - 'v*'
+
+name: create first-plugin archetype source code release
+
+env:
+  tag: ${{ github.ref }}
+
+jobs:
+  auto-create-release:
+    name: Auto Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: save env version
+        shell: bash
+        run: |
+          str=${{env.tag}}
+          echo "version=${str##*v}" >> $GITHUB_ENV
+      - name: Checkout Source
+        uses: actions/checkout@v4
+      - name: Set up JDK 8
+        uses: actions/setup-java@v4
+        with:
+          java-version: '8'
+          distribution: 'adopt'
+          cache: maven
+      - name: Create License Binary Suffix
+        run: |
+          mvn license:aggregate-add-third-party
+      - name: Build with Maven
+        run: |
+          mvn clean package -DskipTests
+          tar -czvf first-plugin.tar.gz agent/
+          mkdir ${{ github.workspace }}/package
+          cp ${{ github.workspace }}/first-plugin.tar.gz ${{ github.workspace }}/package/first-plugin-${{ env.version }}.tar.gz
+      - name: Create Release # automatically release new version
+        id: create_release
+        uses: actions/create-release@v1.1.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+      - name: Upload Release
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ github.workspace }}/package/first-plugin-${{ env.version }}.tar.gz
+          asset_name: first-plugin-${{ env.version }}.tar.gz
+          asset_content_type: application/tar
