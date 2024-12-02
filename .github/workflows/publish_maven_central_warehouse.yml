@@ -1,0 +1,66 @@
+on:
+  push:
+    tags:
+      - 'v*'
+
+name: publish first-plugin archetype
+
+jobs:
+  publish:
+    name: publish Maven central warehouse
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+      - name: Set up JDK 8
+        uses: actions/setup-java@v4
+        with:
+          java-version: '8'
+          distribution: 'adopt'
+          cache: maven
+          server-id: sermant
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+      - name: Install secret key
+        run: |
+          cat <(echo -e "${{ secrets.GPG_PRIVATE_KEY }}") | gpg --batch --import
+          gpg --list-secret-keys --keyid-format LONG
+      - name: create first-plugin archetype
+        run: |
+          mvn archetype:create-from-project -Darchetype.properties=./archetype.properties
+          cd ${{ github.workspace }}/target/generated-sources/archetype
+          sed -i '/<\/build>/ i \
+          <plugins>\
+            <plugin>\
+              <groupId>org.apache.maven.plugins</groupId>\
+              <artifactId>maven-gpg-plugin</artifactId>\
+              <version>3.0.1</version>\
+              <executions>\
+                <execution>\
+                  <id>sign-artifacts</id>\
+                  <phase>verify</phase>\
+                  <goals>\
+                    <goal>sign</goal>\
+                  </goals>\
+                </execution>\
+              </executions>\
+            </plugin>\
+            <plugin>\
+              <groupId>org.sonatype.central</groupId>\
+              <artifactId>central-publishing-maven-plugin</artifactId>\
+              <version>0.5.0</version>\
+              <extensions>true</extensions>\
+              <configuration>\
+                <publishingServerId>sermant</publishingServerId>\
+                <autoPublish>false</autoPublish>\
+              </configuration>\
+            </plugin>\
+          </plugins>' pom.xml
+          cat pom.xml
+      - name: Delopy
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+        run: |
+          cd ${{ github.workspace }}/target/generated-sources/archetype
+          mvn --batch-mode -Dgpg.passphrase=${{ secrets.GPG_SECRET_KEY_PASSWORD }} clean deploy -DskipTests
