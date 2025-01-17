@@ -17,7 +17,7 @@ Modify archetype.properties file:
 ```properties
 archetype.groupId=io.sermant
 archetype.artifactId=sermant-template-archetype
-archetype.version=2.1.0 # modify this version before deploy
+archetype.version=2.2.0 # modify this version before deploy
 package=io.sermant
 excludePatterns=.github/**,.idea/**,.idea/libraries/*,**/*.iml,README.md,README-zh.md
 ```
@@ -25,7 +25,7 @@ excludePatterns=.github/**,.idea/**,.idea/libraries/*,**/*.iml,README.md,README-
 ### 2. Modify project version
 Modify all pom file of this project:
 ```
-<version>2.1.0</version> # modify this version in pom file before release
+<version>2.2.0</version> # modify this version in pom file before release
 ```
 
 ### 3. Modify config
