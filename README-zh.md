@@ -17,7 +17,7 @@ Modify archetype.properties file:
 ```properties
 archetype.groupId=io.sermant
 archetype.artifactId=sermant-template-archetype
-archetype.version=2.2.0 # 发布前修改该版本
+archetype.version=2.3.0 # 发布前修改该版本
 package=io.sermant
 excludePatterns=.github/**,.idea/**,.idea/libraries/*,**/*.iml,README.md,README-zh.md
 ```
@@ -25,7 +25,7 @@ excludePatterns=.github/**,.idea/**,.idea/libraries/*,**/*.iml,README.md,README-
 ### 2. 修改项目版本
 修改该项目下的所有POM文件:
 ```
-<version>2.2.0</version> # 发布前修改POM文件的版本
+<version>2.3.0</version> # 发布前修改POM文件的版本
 ```
 
 ### 3. 修改配置
